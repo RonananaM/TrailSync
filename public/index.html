@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1118">
+  <meta name="description" content="TrailSync offline-first hiking tracker and analytics dashboard.">
+  <title>TrailSync | Hiking Analytics</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="authScreen" class="auth-screen">
+    <div class="auth-art">
+      <div class="brand"><span class="brand-mark">▲</span> TRAILSYNC</div>
+      <div class="auth-copy">
+        <span class="eyebrow">GO BEYOND THE ROUTINE</span>
+        <h1>Your next<br><span>great trail</span><br>starts here.</h1>
+        <p>Track your journey. Understand your progress. Keep exploring — even offline.</p>
+      </div>
+      <div class="auth-bottom">BUILT FOR THE OUTDOORS <span>●</span> POWERED BY DATA</div>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-form-wrap">
+        <div class="mobile-brand brand"><span class="brand-mark">▲</span> TRAILSYNC</div>
+        <span class="eyebrow">YOUR ADVENTURE, ORGANIZED</span>
+        <h2 id="authTitle">Welcome back</h2>
+        <p class="muted" id="authSubtitle">Sign in to continue your journey.</p>
+        <form id="authForm">
+          <div id="nameField" class="field hidden">
+            <label for="authName">Full name</label>
+            <input id="authName" type="text" maxlength="100" placeholder="Your name" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="authEmail">Email address</label>
+            <input id="authEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="authPassword">Password</label>
+            <input id="authPassword" type="password" required minlength="8" placeholder="At least 8 characters" autocomplete="current-password">
+          </div>
+          <button class="btn btn-primary btn-full" id="authSubmit" type="submit">Sign in <span>↗</span></button>
+        </form>
+        <p class="auth-switch"><span id="authSwitchText">New to TrailSync?</span> <button id="authSwitch" class="text-button" type="button">Create account</button></p>
+        <p class="auth-note">Your location is recorded only when you start a hike and grant browser permission.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="brand sidebar-brand" href="#"><span class="brand-mark">▲</span> TRAILSYNC</a>
+      <div class="side-label">WORKSPACE</div>
+      <nav class="side-nav">
+        <button class="nav-link active" data-target="dashboardView"><span>▦</span> Overview</button>
+        <button class="nav-link" data-target="trackerView"><span>⌖</span> GPS Tracker</button>
+        <button class="nav-link" data-target="historyView"><span>◷</span> Hike History</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sync-card">
+          <span class="sync-dot" id="syncDot"></span>
+          <div><strong id="connectionText">Checking connection</strong><small id="syncText">Local storage ready</small></div>
+        </div>
+        <button id="syncButton" class="btn btn-secondary btn-full">↻ &nbsp; Sync hikes</button>
+        <button id="logoutButton" class="logout-button">↪ &nbsp; Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow" id="todayLabel">YOUR OUTDOOR JOURNAL</span>
+          <h1 id="pageTitle">Overview</h1>
+        </div>
+        <div class="top-user">
+          <div class="online-indicator"></div>
+          <div><strong id="userName">Hiker</strong><small id="userEmail">Offline-first account</small></div>
+          <div class="avatar" id="userAvatar">H</div>
+        </div>
+      </header>
+
+      <section id="dashboardView" class="view">
+        <div class="welcome-banner">
+          <div><span class="eyebrow">YOUR JOURNEY SO FAR</span><h2>Keep moving.<br><em>Keep discovering.</em></h2><p>Every trail tells a story. Here's yours.</p></div>
+          <button class="btn btn-primary" data-go="trackerView">Start a hike <span>↗</span></button>
+          <div class="banner-orbit orbit-one"></div><div class="banner-orbit orbit-two"></div>
+        </div>
+
+        <div class="section-heading"><div><span class="eyebrow">PERFORMANCE SNAPSHOT</span><h3>Your hiking stats</h3></div><span class="muted tiny">Based on saved activities</span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top"><span>Total distance</span><span class="stat-icon green">↗</span></div><strong id="totalDistance">0.0 <small>km</small></strong><p>Across all saved hikes</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Hikes completed</span><span class="stat-icon purple">⌁</span></div><strong id="totalHikes">0</strong><p>Your recorded adventures</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Elevation gain</span><span class="stat-icon orange">⌃</span></div><strong id="totalElevation">0 <small>m</small></strong><p>Estimated uphill gain</p></article>
+          <article class="stat-card"><div class="stat-top"><span>Active time</span><span class="stat-icon blue">◷</span></div><strong id="totalTime">0h 0m</strong><p>Time spent on the trail</p></article>
+        </div>
+
+        <div class="content-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><span class="eyebrow">ACTIVITY REPORT</span><h3>Distance over time</h3></div><span class="chart-unit">KM / MONTH</span></div>
+            <div class="chart-wrap"><canvas id="activityChart"></canvas></div>
+          </article>
+          <article class="panel recent-panel">
+            <div class="panel-heading"><div><span class="eyebrow">LATEST RECORDS</span><h3>Recent hikes</h3></div><button class="text-button" data-go="historyView">View all ↗</button></div>
+            <div id="recentHikes" class="recent-list"><div class="empty-state">Your saved hikes will appear here.</div></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="trackerView" class="view hidden">
+        <div class="tracker-intro"><div><span class="eyebrow">LIVE ACTIVITY</span><h2>Find your own path.</h2><p class="muted">Allow location access to record your route. Keep this page open while tracking.</p></div><span class="live-pill"><i></i> GPS TRACKER</span></div>
+        <div class="tracker-layout">
+          <div class="panel map-panel"><div class="map-toolbar"><strong>Route map</strong><span id="gpsStatus" class="muted tiny">Waiting for GPS</span></div><div id="map"></div><p class="map-footnote">Map tiles require an internet connection. GPS points can still be recorded without map tiles.</p></div>
+          <div class="panel tracker-controls">
+            <span class="eyebrow">CURRENT SESSION</span><div id="trackerState" class="tracker-state">READY TO EXPLORE</div>
+            <div class="timer" id="timer">00:00:00</div><span class="muted tiny">ELAPSED TIME</span>
+            <div class="live-metrics"><div><small>DISTANCE</small><strong id="liveDistance">0.00 <i>km</i></strong></div><div><small>GPS POINTS</small><strong id="livePoints">0</strong></div><div><small>ELEVATION</small><strong id="liveElevation">0 <i>m</i></strong></div></div>
+            <div class="tracker-actions"><button id="startButton" class="btn btn-primary btn-full">Start tracking</button><button id="pauseButton" class="btn btn-secondary btn-full hidden">Pause hike</button><button id="resumeButton" class="btn btn-primary btn-full hidden">Resume hike</button><button id="finishButton" class="btn btn-danger btn-full hidden">Finish and save</button></div>
+            <p class="privacy-note">⌖ Location access is controlled by your browser. GPS accuracy varies by device and environment.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="historyView" class="view hidden">
+        <div class="section-heading"><div><span class="eyebrow">YOUR ADVENTURE LOG</span><h3>Hike history</h3><p class="muted">Review and export your recorded activities.</p></div><button id="exportCsvButton" class="btn btn-secondary">↓ Export CSV</button></div>
+        <div class="panel history-panel"><div class="history-header"><span>ACTIVITY</span><span>DISTANCE</span><span>DURATION</span><span>STATUS</span><span>ACTIONS</span></div><div id="historyList"><div class="empty-state">No hikes recorded yet. Start your first hike!</div></div></div>
+      </section>
+
+      <footer class="app-footer"><span>TRAILSYNC © 2026</span><span>EXPLORE RESPONSIBLY · LEAVE NO TRACE</span></footer>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
